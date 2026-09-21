@@ -37,7 +37,7 @@ jobs:
           security unlock-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
           security set-keychain-settings -lut 21600 build.keychain
 
-          python3 -c "import base64, os; open('certificate.file', 'wb').write(base64.b64decode(os.environ['BUILD_CERTIFICATE_BASE64'].strip()))"
+          python3 -c "import base64, os; s=os.environ.get('BUILD_CERTIFICATE_BASE64','').strip().replace('\r','').replace('\n',''); s+='='*(-len(s)%4); open('certificate.file','wb').write(base64.b64decode(s))"
 
           ls -lh certificate.file
           file certificate.file
@@ -49,7 +49,7 @@ jobs:
           security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PASSWORD" build.keychain
 
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          python3 -c "import base64, os; open(os.path.expanduser('~/Library/MobileDevice/Provisioning Profiles/profile.mobileprovision'), 'wb').write(base64.b64decode(os.environ['BUILD_PROVISION_PROFILE_BASE64'].strip()))"
+          python3 -c "import base64, os; s=os.environ.get('BUILD_PROVISION_PROFILE_BASE64','').strip().replace('\r','').replace('\n',''); s+='='*(-len(s)%4); p=os.path.expanduser('~/Library/MobileDevice/Provisioning Profiles/profile.mobileprovision'); open(p,'wb').write(base64.b64decode(s))"
 
       - name: Select Xcode
         uses: maxim-lobanov/setup-xcode@v1
