@@ -299,7 +299,10 @@
 			baseConfigurationReference = 958DCC722DB07C7200EA8C5F /* debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_IDENTITY = "Apple Distribution";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "Apple Distribution";
+				CODE_SIGN_STYLE = Manual;
+				PROVISIONING_PROFILE_SPECIFIER = "Staff AppStore Profile";
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = VMX44G9FJJ;
 				INFOPLIST_FILE = App/Info.plist;
@@ -322,7 +325,10 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_IDENTITY = "Apple Distribution";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "Apple Distribution";
+				CODE_SIGN_STYLE = Manual;
+				PROVISIONING_PROFILE_SPECIFIER = "Staff AppStore Profile";
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = VMX44G9FJJ;
 				INFOPLIST_FILE = App/Info.plist;

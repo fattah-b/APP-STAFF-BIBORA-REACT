@@ -72,7 +72,9 @@ jobs:
             -archivePath build/App.xcarchive \
             DEVELOPMENT_TEAM="VMX44G9FJJ" \
             CODE_SIGN_STYLE="Manual" \
+            CODE_SIGN_IDENTITY="Apple Distribution" \
             PROVISIONING_PROFILE_SPECIFIER="Staff AppStore Profile" \
+            PROVISIONING_PROFILE="d1cc8f98-4ca6-4acb-b393-c7a99dc3ade9" \
             CURRENT_PROJECT_VERSION=${{ github.run_number }} \
             archive > xcodebuild.log 2>&1 || ARCHIVE_FAILED=1
 
