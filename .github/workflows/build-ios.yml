@@ -37,16 +37,19 @@ jobs:
           security unlock-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
           security set-keychain-settings -lut 21600 build.keychain
 
-          echo "$BUILD_CERTIFICATE_BASE64" | tr -d '\r\n ' | base64 --decode > certificate.file 2>/dev/null || echo "$BUILD_CERTIFICATE_BASE64" | tr -d '\r\n ' | base64 -D > certificate.file
+          python3 -c "import base64, os; open('certificate.file', 'wb').write(base64.b64decode(os.environ['BUILD_CERTIFICATE_BASE64'].strip()))"
 
-          if ! security import certificate.file -k build.keychain -P "$P12_PASSWORD" -A -T /usr/bin/codesign 2>/dev/null; then
+          ls -lh certificate.file
+          file certificate.file
+
+          if ! security import certificate.file -k build.keychain -P "$P12_PASSWORD" -A -T /usr/bin/codesign; then
             security import certificate.file -k build.keychain -A -T /usr/bin/codesign
           fi
 
           security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PASSWORD" build.keychain
 
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          echo "$BUILD_PROVISION_PROFILE_BASE64" | tr -d '\r\n ' | base64 --decode > ~/Library/MobileDevice/Provisioning\ Profiles/profile.mobileprovision 2>/dev/null || echo "$BUILD_PROVISION_PROFILE_BASE64" | tr -d '\r\n ' | base64 -D > ~/Library/MobileDevice/Provisioning\ Profiles/profile.mobileprovision
+          python3 -c "import base64, os; open(os.path.expanduser('~/Library/MobileDevice/Provisioning Profiles/profile.mobileprovision'), 'wb').write(base64.b64decode(os.environ['BUILD_PROVISION_PROFILE_BASE64'].strip()))"
 
       - name: Select Xcode
         uses: maxim-lobanov/setup-xcode@v1
