@@ -37,12 +37,16 @@ jobs:
           security unlock-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
           security set-keychain-settings -lut 21600 build.keychain
 
-          echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode -o certificate.p12
-          security import certificate.p12 -k build.keychain -P "$P12_PASSWORD" -A -T /usr/bin/codesign
+          echo "$BUILD_CERTIFICATE_BASE64" | tr -d '\r\n ' | base64 --decode > certificate.file 2>/dev/null || echo "$BUILD_CERTIFICATE_BASE64" | tr -d '\r\n ' | base64 -D > certificate.file
+
+          if ! security import certificate.file -k build.keychain -P "$P12_PASSWORD" -A -T /usr/bin/codesign 2>/dev/null; then
+            security import certificate.file -k build.keychain -A -T /usr/bin/codesign
+          fi
+
           security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PASSWORD" build.keychain
 
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          echo -n "$BUILD_PROVISION_PROFILE_BASE64" | base64 --decode -o ~/Library/MobileDevice/Provisioning\ Profiles/profile.mobileprovision
+          echo "$BUILD_PROVISION_PROFILE_BASE64" | tr -d '\r\n ' | base64 --decode > ~/Library/MobileDevice/Provisioning\ Profiles/profile.mobileprovision 2>/dev/null || echo "$BUILD_PROVISION_PROFILE_BASE64" | tr -d '\r\n ' | base64 -D > ~/Library/MobileDevice/Provisioning\ Profiles/profile.mobileprovision
 
       - name: Select Xcode
         uses: maxim-lobanov/setup-xcode@v1
