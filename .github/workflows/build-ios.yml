@@ -83,11 +83,11 @@ jobs:
           path: build/out/*.ipa
 
       - name: Upload to App Store Connect / TestFlight
-        if: ${{ secrets.APPSTORE_KEY_ID != '' }}
         env:
           APPSTORE_KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
           APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
           APPSTORE_PRIVATE_KEY: ${{ secrets.APPSTORE_PRIVATE_KEY }}
+        if: ${{ env.APPSTORE_KEY_ID != '' }}
         run: |
           mkdir -p ~/.appstoreconnect/private_keys
           echo "$APPSTORE_PRIVATE_KEY" > ~/.appstoreconnect/private_keys/AuthKey_${APPSTORE_KEY_ID}.p8
