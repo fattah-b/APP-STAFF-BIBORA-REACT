@@ -38,4 +38,8 @@ ios/App/App/public
 *.jks
 *.p12
 *.mobileprovision
+*.key
+*.cer
+*.certSigningRequest
+
 
