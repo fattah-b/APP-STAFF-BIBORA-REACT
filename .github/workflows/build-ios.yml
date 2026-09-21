@@ -46,8 +46,7 @@ jobs:
 
           security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PASSWORD" build.keychain
 
-          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          python3 -c "import base64, os; s=os.environ.get('BUILD_PROVISION_PROFILE_BASE64','').strip().replace('\r','').replace('\n',''); s+='='*(-len(s)%4); p=os.path.expanduser('~/Library/MobileDevice/Provisioning Profiles/profile.mobileprovision'); open(p,'wb').write(base64.b64decode(s))"
+          python3 -c "import base64, os, re; s=os.environ.get('BUILD_PROVISION_PROFILE_BASE64','').strip().replace('\r','').replace('\n',''); s+='='*(-len(s)%4); data=base64.b64decode(s); d=os.path.expanduser('~/Library/MobileDevice/Provisioning Profiles'); os.makedirs(d, exist_ok=True); open(os.path.join(d, 'profile.mobileprovision'), 'wb').write(data); m=re.search(rb'<key>UUID</key>\s*<string>([^<]+)</string>', data); open(os.path.join(d, f'{m.group(1).decode(\"utf-8\")}.mobileprovision'), 'wb').write(data) if m else None"
 
       - name: Select Xcode
         uses: maxim-lobanov/setup-xcode@v1
