@@ -10,7 +10,7 @@
     <string>K8KLWF4YR8</string>
     <key>provisioningProfiles</key>
     <dict>
-        <key>com.staff.app</key>
+        <key>com.darsaistiqomah.staffapp</key>
         <string>Staff AppStore Profile</string>
     </dict>
 </dict>
