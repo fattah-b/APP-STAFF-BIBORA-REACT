@@ -51,7 +51,7 @@ jobs:
       - name: Select Xcode
         uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: '^16'
+          xcode-version: '^26'
 
       - name: Set Dynamic Build Number
         run: |
