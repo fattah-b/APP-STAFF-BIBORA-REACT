@@ -37,14 +37,12 @@ jobs:
           security unlock-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
           security set-keychain-settings -lut 21600 build.keychain
 
-          python3 -c "import base64, os; s=os.environ.get('BUILD_CERTIFICATE_BASE64','').strip().replace('\r','').replace('\n',''); s+='='*(-len(s)%4); open('certificate.file','wb').write(base64.b64decode(s))"
+          python3 -c "import base64, os; s=os.environ.get('BUILD_CERTIFICATE_BASE64','').strip().replace('\r','').replace('\n',''); s+='='*(-len(s)%4); open('certificate.p12','wb').write(base64.b64decode(s))"
 
-          ls -lh certificate.file
-          file certificate.file
+          ls -lh certificate.p12
+          file certificate.p12
 
-          if ! security import certificate.file -k build.keychain -P "$P12_PASSWORD" -A -T /usr/bin/codesign; then
-            security import certificate.file -k build.keychain -A -T /usr/bin/codesign
-          fi
+          security import certificate.p12 -k build.keychain -P "$P12_PASSWORD" -A -T /usr/bin/codesign
 
           security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PASSWORD" build.keychain
 
