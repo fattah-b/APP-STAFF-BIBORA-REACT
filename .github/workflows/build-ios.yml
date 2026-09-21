@@ -105,7 +105,7 @@ jobs:
         if: ${{ env.APPSTORE_KEY_ID != '' && env.APPSTORE_ISSUER_ID != '' }}
         run: |
           mkdir -p ~/.appstoreconnect/private_keys
-          echo "$APPSTORE_PRIVATE_KEY" > ~/.appstoreconnect/private_keys/AuthKey_${APPSTORE_KEY_ID}.p8
+          python3 -c "import os; open(os.path.expanduser(f'~/.appstoreconnect/private_keys/AuthKey_{os.environ[\"APPSTORE_KEY_ID\"]}.p8'), 'w').write(os.environ['APPSTORE_PRIVATE_KEY'].strip() + '\n')"
           
           set -e
           xcrun altool --upload-app \
