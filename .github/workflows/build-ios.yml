@@ -1,0 +1,100 @@
+name: Build & Upload iOS (.ipa)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-ios:
+    runs-on: macos-15
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: |
+          npm ci
+
+      - name: Build Web App & Sync Capacitor
+        run: |
+          npm run build
+          npx cap sync ios
+
+      - name: Install Apple Certificate & Provisioning Profile
+        env:
+          BUILD_CERTIFICATE_BASE64: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
+          P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
+          BUILD_PROVISION_PROFILE_BASE64: ${{ secrets.PROVISIONING_PROFILE_BASE64 }}
+          KEYCHAIN_PASSWORD: "temporary-ci-password"
+        run: |
+          security create-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
+          security set-keychain-settings -lut 21600 build.keychain
+
+          echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode -o certificate.p12
+          security import certificate.p12 -k build.keychain -P "$P12_PASSWORD" -A -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PASSWORD" build.keychain
+
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          echo -n "$BUILD_PROVISION_PROFILE_BASE64" | base64 --decode -o ~/Library/MobileDevice/Provisioning\ Profiles/profile.mobileprovision
+
+      - name: Select Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '^16'
+
+      - name: Set Dynamic Build Number
+        run: |
+          cd ios/App
+          xcrun agvtool new-version -all ${{ github.run_number }}
+
+      - name: Archive Xcode Project
+        run: |
+          xcodebuild -workspace ios/App/App.xcworkspace \
+            -scheme App \
+            -configuration Release \
+            -archivePath build/App.xcarchive \
+            CURRENT_PROJECT_VERSION=${{ github.run_number }} \
+            archive > xcodebuild.log 2>&1 || ARCHIVE_FAILED=1
+
+          if [ "$ARCHIVE_FAILED" = "1" ] || [ ! -d "build/App.xcarchive" ]; then
+            echo "==== EXTRACTED XCODE ERRORS ===="
+            grep -i "error:" xcodebuild.log | grep -v "Run script build phase" || tail -n 60 xcodebuild.log
+            exit 65
+          fi
+
+      - name: Export .ipa
+        run: |
+          xcodebuild -exportArchive \
+            -archivePath build/App.xcarchive \
+            -exportOptionsPlist ios/ExportOptions.plist \
+            -exportPath build/out
+
+      - name: Upload .ipa Artifact to GitHub
+        uses: actions/upload-artifact@v4
+        with:
+          name: Staff-App-iOS-IPA
+          path: build/out/*.ipa
+
+      - name: Upload to App Store Connect / TestFlight
+        if: ${{ secrets.APPSTORE_KEY_ID != '' }}
+        env:
+          APPSTORE_KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
+          APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
+          APPSTORE_PRIVATE_KEY: ${{ secrets.APPSTORE_PRIVATE_KEY }}
+        run: |
+          mkdir -p ~/.appstoreconnect/private_keys
+          echo "$APPSTORE_PRIVATE_KEY" > ~/.appstoreconnect/private_keys/AuthKey_${APPSTORE_KEY_ID}.p8
+          
+          set -e
+          xcrun altool --upload-app \
+            -f build/out/*.ipa \
+            -t ios \
+            --apiKey "$APPSTORE_KEY_ID" \
+            --apiIssuer "$APPSTORE_ISSUER_ID"

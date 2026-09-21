@@ -1,0 +1,41 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Capacitor & Native Builds
+node_modules
+dist
+dist-ssr
+*.local
+android/app/build
+android/.gradle
+android/.idea
+android/.kotlin
+ios/App/Pods
+ios/App/build
+ios/App/App/public
+*.jks
+*.p12
+*.mobileprovision
+

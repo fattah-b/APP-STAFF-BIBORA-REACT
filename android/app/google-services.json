@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "74442935232",
+    "project_id": "bibora-staff-app",
+    "storage_bucket": "bibora-staff-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:74442935232:android:a47583078260357d35d625",
+        "android_client_info": {
+          "package_name": "com.staff.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDoC66R-wTICySm5ODwS2jWbApm3GaOOCs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
