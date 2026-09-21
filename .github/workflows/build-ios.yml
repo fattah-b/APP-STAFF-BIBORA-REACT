@@ -70,7 +70,7 @@ jobs:
             -scheme App \
             -configuration Release \
             -archivePath build/App.xcarchive \
-            DEVELOPMENT_TEAM="K8KLWF4YR8" \
+            DEVELOPMENT_TEAM="VMX44G9FJJ" \
             CODE_SIGN_STYLE="Manual" \
             PROVISIONING_PROFILE_SPECIFIER="Staff AppStore Profile" \
             CURRENT_PROJECT_VERSION=${{ github.run_number }} \
