@@ -41,5 +41,7 @@ ios/App/App/public
 *.key
 *.cer
 *.certSigningRequest
+*-firebase-adminsdk-*.json
+
 
 
