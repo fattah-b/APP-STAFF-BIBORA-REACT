@@ -76,15 +76,23 @@ serve(async (req) => {
       return new Response(JSON.stringify({ message: 'No restaurant_id provided' }), { status: 400 })
     }
 
-    if (!FIREBASE_SERVICE_ACCOUNT) {
-      return new Response(JSON.stringify({ error: 'FIREBASE_SERVICE_ACCOUNT secret is missing' }), { status: 500 })
+    const clientEmail = Deno.env.get('FIREBASE_CLIENT_EMAIL') || ''
+    const privateKey = (Deno.env.get('FIREBASE_PRIVATE_KEY') || '').replace(/\\n/g, '\n')
+    const projectId = Deno.env.get('FIREBASE_PROJECT_ID') || 'bibora-staff-app'
+
+    if (!clientEmail || !privateKey) {
+      return new Response(JSON.stringify({ error: 'FIREBASE_CLIENT_EMAIL or FIREBASE_PRIVATE_KEY secret is missing' }), { status: 500 })
     }
 
-    const serviceAccount = JSON.parse(FIREBASE_SERVICE_ACCOUNT)
+    const serviceAccount = {
+      client_email: clientEmail,
+      private_key: privateKey,
+      project_id: projectId
+    }
     const accessToken = await getAccessToken(serviceAccount)
-    const projectId = serviceAccount.project_id
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
+
 
     // Fetch device tokens for this restaurant
     const { data: tokens, error } = await supabase
@@ -96,9 +104,9 @@ serve(async (req) => {
       return new Response(JSON.stringify({ message: 'No registered device tokens found' }), { status: 200 })
     }
 
-    // Send push notification via FCM v1 API
+    // Send push notification via FCM v1 API with immediate TTL and high priority
     const pushPromises = tokens.map(async ({ token }) => {
-      return fetch(`https://fcm.googleapis.com/v1/projects/${projectId}/messages:send`, {
+      const res = await fetch(`https://fcm.googleapis.com/v1/projects/${projectId}/messages:send`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -113,17 +121,20 @@ serve(async (req) => {
             },
             android: {
               priority: 'HIGH',
+              ttl: '0s',
               notification: {
                 channel_id: 'new_orders_channel',
                 sound: 'default',
                 notification_priority: 'PRIORITY_HIGH',
                 visibility: 'PUBLIC',
-                default_vibrate_timings: true
+                default_vibrate_timings: true,
+                default_sound_timings: true
               }
             },
             apns: {
               headers: {
-                'apns-priority': '10'
+                'apns-priority': '10',
+                'apns-push-type': 'alert'
               },
               payload: {
                 aps: {
@@ -132,6 +143,7 @@ serve(async (req) => {
                     body: `New order #${record.id?.slice(0, 6) || ''} arrived.`
                   },
                   sound: 'default',
+                  badge: 1,
                   'content-available': 1
                 }
               }
@@ -143,14 +155,18 @@ serve(async (req) => {
           }
         })
       })
+      const resData = await res.json()
+      console.log('FCM Send Response:', JSON.stringify(resData))
+      return resData
     })
 
-    await Promise.all(pushPromises)
+    const results = await Promise.all(pushPromises)
 
-    return new Response(JSON.stringify({ success: true, count: tokens.length }), { status: 200 })
+    return new Response(JSON.stringify({ success: true, count: tokens.length, results }), { status: 200 })
   } catch (err) {
     return new Response(JSON.stringify({ error: err.message }), { status: 500 })
   }
 })
+
 
 
