@@ -29,9 +29,9 @@ import { PushNotifications } from '@capacitor/push-notifications';
 type TabType = 'new' | 'pending' | 'preparing' | 'completed';
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [restaurantId, setRestaurantId] = useState('');
-  const [restaurantName, setRestaurantName] = useState('');
+  const [isAuthenticated, setIsAuthenticated] = useState(() => localStorage.getItem('staff_is_authenticated') === 'true');
+  const [restaurantId, setRestaurantId] = useState(() => localStorage.getItem('staff_restaurant_id') || '');
+  const [restaurantName, setRestaurantName] = useState(() => localStorage.getItem('staff_restaurant_name') || '');
   const [activeTab, setActiveTab] = useState<TabType>('new');
   const [orders, setOrders] = useState<OrderLog[]>([]);
   const [loading, setLoading] = useState(false);
