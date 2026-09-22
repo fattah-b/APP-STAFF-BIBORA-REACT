@@ -182,6 +182,12 @@ function App() {
       console.log('Push received in foreground: ', notification);
     });
 
+    const addActionPerformedListener = PushNotifications.addListener('pushNotificationActionPerformed', action => {
+      console.log('Push notification tapped/opened: ', action);
+      setActiveTab('new');
+      fetchRestaurantOrders(restaurantId).then(setOrders).catch(console.error);
+    });
+
     // 2. Request permissions and register
     PushNotifications.requestPermissions().then(result => {
       if (result.receive === 'granted') {
@@ -195,6 +201,7 @@ function App() {
       addRegListener.then(h => h.remove?.());
       addErrorListener.then(h => h.remove?.());
       addNotificationListener.then(h => h.remove?.());
+      addActionPerformedListener.then(h => h.remove?.());
     };
   }, [isNative, restaurantId]);
 
