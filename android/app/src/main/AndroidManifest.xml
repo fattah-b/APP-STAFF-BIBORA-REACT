@@ -23,6 +23,8 @@
             android:label="@string/title_activity_main"
             android:theme="@style/AppTheme.NoActionBarLaunch"
             android:launchMode="singleTask"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true"
             android:exported="true">
 
             <intent-filter>
@@ -52,5 +54,7 @@
     <uses-permission android:name="android.permission.VIBRATE" />
     <!-- Required to reschedule notifications after device reboot -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <!-- Required to wake screen on lockscreen notification (WhatsApp-style) -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
 </manifest>
 
