@@ -100,6 +100,40 @@ serve(async (req) => {
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 
+    // Check kitchen configurations to skip notification if order contains ONLY items with requires_preparation = false
+    const items = record.edited_detected_items || record.detected_items || []
+    if (items.length > 0) {
+      // Fetch menu_items mapping and kitchen_configurations for this restaurant
+      const [{ data: menuItems }, { data: kitchenConfigs }] = await Promise.all([
+        supabase.from('menu_items').select('name, category, subcategory').eq('restaurant_id', record.restaurant_id).eq('is_active', true),
+        supabase.from('kitchen_configurations').select('category, requires_preparation').eq('restaurant_id', record.restaurant_id)
+      ])
+
+      const menuMap: Record<string, string> = {}
+      ;(menuItems || []).forEach((m: any) => {
+        if (m.name) {
+          const resolved = m.subcategory || m.category || 'other'
+          menuMap[m.name.toLowerCase().trim()] = resolved.toLowerCase().trim()
+        }
+      })
+
+      const configMap: Record<string, boolean> = {}
+      ;(kitchenConfigs || []).forEach((c: any) => {
+        if (c.category) {
+          configMap[c.category.toLowerCase().trim()] = c.requires_preparation
+        }
+      })
+
+      const allNoPrep = items.every((item: any) => {
+        const cat = (menuMap[String(item.name || '').toLowerCase().trim()] || 'other').toLowerCase().trim()
+        const reqPrep = configMap[cat]
+        return reqPrep === false
+      })
+
+      if (allNoPrep) {
+        return new Response(JSON.stringify({ message: 'Order contains only items that do not require preparation; push notification skipped.' }), { status: 200 })
+      }
+    }
 
     // Fetch device tokens for this restaurant
     const { data: tokens, error } = await supabase
@@ -110,6 +144,7 @@ serve(async (req) => {
     if (error || !tokens || tokens.length === 0) {
       return new Response(JSON.stringify({ message: 'No registered device tokens found' }), { status: 200 })
     }
+
 
     // Send push notification via FCM v1 API with immediate TTL and high priority
     const pushPromises = tokens.map(async ({ token }) => {
