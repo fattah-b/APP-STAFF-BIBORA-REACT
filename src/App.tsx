@@ -92,6 +92,7 @@ function App() {
 
     const hasVisibleNewOrders = orders.some(order => {
       if (order.staff_status !== 'notified') return false;
+      if (order.payment_status?.toLowerCase() !== 'completed') return false;
       return !isAutoCompletedOrder(order);
     });
 
@@ -476,6 +477,7 @@ function App() {
       
       if (activeTab === 'new') {
         if (staffStatus !== 'notified') return false;
+        if (payStatus !== 'completed') return false; // Ignore pending payment orders on New tab
         
         // Filter out orders that contain ONLY items that do not require preparation
         return !isAutoCompletedOrder(order);
