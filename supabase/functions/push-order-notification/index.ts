@@ -131,8 +131,7 @@ serve(async (req) => {
                 sound: 'default',
                 notification_priority: 'PRIORITY_HIGH',
                 visibility: 'PUBLIC',
-                default_vibrate_timings: true,
-                default_sound_timings: true
+                default_vibrate_timings: true
               }
             },
             apns: {
