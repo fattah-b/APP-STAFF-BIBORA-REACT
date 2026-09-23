@@ -75,9 +75,12 @@ serve(async (req) => {
     // Handle standard webhook payload (record), database trigger (record), or direct object
     const record = payload.record || payload.record_new || payload.new || payload
 
-    if (!record || !record.restaurant_id) {
-      return new Response(JSON.stringify({ message: 'No restaurant_id provided', payloadReceived: payload }), { status: 400 })
+    // Filter: Only send push notifications for completed / paid orders
+    const paymentStatus = String(record.payment_status || '').toLowerCase()
+    if (paymentStatus === 'pending') {
+      return new Response(JSON.stringify({ message: 'Order payment is pending; push notification skipped.', paymentStatus }), { status: 200 })
     }
+
 
 
     const clientEmail = Deno.env.get('FIREBASE_CLIENT_EMAIL') || ''
