@@ -70,11 +70,15 @@ async function getAccessToken(serviceAccount: any): Promise<string> {
 serve(async (req) => {
   try {
     const payload = await req.json()
-    const record = payload.record // Inserted scans_logs row
+    console.log('Incoming Payload:', JSON.stringify(payload))
+
+    // Handle standard webhook payload (record), database trigger (record), or direct object
+    const record = payload.record || payload.record_new || payload.new || payload
 
     if (!record || !record.restaurant_id) {
-      return new Response(JSON.stringify({ message: 'No restaurant_id provided' }), { status: 400 })
+      return new Response(JSON.stringify({ message: 'No restaurant_id provided', payloadReceived: payload }), { status: 400 })
     }
+
 
     const clientEmail = Deno.env.get('FIREBASE_CLIENT_EMAIL') || ''
     const privateKey = (Deno.env.get('FIREBASE_PRIVATE_KEY') || '').replace(/\\n/g, '\n')
